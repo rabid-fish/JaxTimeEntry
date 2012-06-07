@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Drag and Drop Test</title>
+
+<style type="text/css">
+	
+	body, div {
+		padding: 0px;
+		margin: 0px;
+	}
+	
+	#layout {
+		width: 500px;
+		margin: auto;
+	}
+	
+	#description {
+		color: #4343A8;
+		padding: 5px;
+	}
+	
+	#hidden {
+		display: none;
+	}
+	
+	#toolbarLower {
+		margin: 20px 0px 10px 0px;
+	}
+	
+	h3 {
+		margin-bottom: 2px;
+	}
+	
+	div.drag, div.drop {
+		border: 2px solid #0000FF;
+		border-radius: 5px;
+	}
+	
+	div.drag {
+		cursor: move;
+	}
+	
+	div.drop {
+		min-height: 50px;
+	}
+	
+	div.row {
+		margin: 5px 10px 5px 10px;
+		padding: 2px;
+		border: 1px solid #D7D7F7;
+	}
+	
+	div.actions {
+		float: right;
+	}
+	
+	a.action {
+		font-size: 1.2em;
+		padding: 3px;
+		line-height: 1em;
+		cursor: pointer;
+	}
+	
+	a.add { color: green; }	
+	a.delete { color: red; }
+	a.action:hover { text-decoration: underline; }
+	
+	option {
+		color: black;
+	}
+	
+	select.defaultSelected, option.defaultSelected {
+		color: grey;
+	}
+	
+	span.hours {
+		margin-left: 5px;
+	}
+	
+	/*
+		http://gradients.glrzad.com/
+		http://css-tricks.com/examples/ButtonMaker/#
+	*/
+	.button {
+		border-top: 1px solid #97f7ad;
+		background: #010d00;
+		
+		background-image: linear-gradient(bottom, rgb(0,51,2) 26%, rgb(36,171,41) 73%);
+		background-image: -o-linear-gradient(bottom, rgb(0,51,2) 26%, rgb(36,171,41) 73%);
+		background-image: -moz-linear-gradient(bottom, rgb(0,51,2) 26%, rgb(36,171,41) 73%);
+		background-image: -webkit-linear-gradient(bottom, rgb(0,51,2) 26%, rgb(36,171,41) 73%);
+		background-image: -ms-linear-gradient(bottom, rgb(0,51,2) 26%, rgb(36,171,41) 73%);
+		
+		padding: 5px 10px;
+		border-radius: 8px;
+		box-shadow: rgba(0,0,0,1) 0 1px 0;
+		text-shadow: rgba(0,0,0,.4) 0 1px 0;
+		color: #ffffff;
+		font-size: 14px;
+		font-family: 'Lucida Grande', Helvetica, Arial, Sans-Serif;
+		text-decoration: none;
+		vertical-align: middle;
+	}
+	
+	.button:hover {
+		border-top-color: #073307;
+		background: #073307;
+		color: #fafafa;
+	}
+	
+	.button:active {
+		border-top-color: #1b435e;
+		background: #1b435e;
+	}
+</style>
+
+<script type="text/javascript" src="static/js/jquery.min.js"></script>
+<script type="text/javascript">
+
+	var cloneFormAndData = null;
+
+	function dragStart(event) {
+		
+		var source = $(event.target);
+		var clone = source.find(".row").clone();
+		
+		copyFormValues(source, clone, "select[name=category]");
+		copyFormValues(source, clone, "select[name=project]");
+		copyFormValues(source, clone, "input[name=hours]");
+
+		cloneFormAndData = clone;
+		
+		event.dataTransfer.setData("text/html", clone.html());
+		event.dataTransfer.effectAllowed = "copy";
+	}
+	
+	function copyFormValues(source, target, selector) {
+		
+		var values = [];
+		var count = 0;
+		
+		source.find(selector).each(function() {
+			values[count++] = $(this).val();
+		});
+
+		count = 0;
+		target.find(selector).each(function() {
+			$(this).val(values[count++]);
+		});
+	}
+	
+	function dragReceive(event) {
+		var data = event.dataTransfer.getData("text/html");
+
+		var target = $(event.target);
+		if (target.hasClass('drop')) {
+			target.append(cloneFormAndData);
+		} else {
+			target.parents('div.drop').append(cloneFormAndData);
+		}
+		
+		event.preventDefault();
+	}
+	
+	function rowAdd(element) {
+		var clone = $('#hidden div.row').clone();
+		if ($(element).hasClass('drag')) {
+			$(element).append(clone);
+		} else {
+			$(element).parents('div.drag').append(clone);
+		}
+		
+		return false;
+	}
+	
+	function rowDelete(element) {
+		$(element).parents('.row').remove();
+		
+		return false;
+	}
+	
+	function selectColor(element) {
+		if (element.selectedIndex == 0) {
+			$(element).addClass("defaultSelected");
+		} else {
+			$(element).removeClass("defaultSelected");
+		}
+	};
+	
+	function formSave() {
+	
+		alert("Save functionality not yet implemented");
+		return false;
+	}
+	
+	$(document).ready(function() {
+		
+		$('div.drag').each(function() {
+			rowAdd(this);
+		});
+		
+		$('select').live("change", function() { selectColor(this) });
+	});
+	
+</script>
+
+</head>
+
+<body>
+
+	<div id="layout">
+
+		<div id="description">
+			<span>
+				The timesheet below allows drag and drop of time entries
+				between days of the week.  To learn more about html 5
+				drag and drop, check out http://html5doctor.com/native-drag-and-drop/
+			</span>
+		</div>
+		
+		<div id="content">
+			<h3>Monday</h3>
+			<div 
+				class="drop drag" 
+				ondragover="return false" 
+				ondrop="dragReceive(event)" 
+				draggable="true" 
+				ondragstart="dragStart(event);" 
+			></div>
+		</div>
+		
+		<div>
+			<h3>Tuesday</h3>
+			<div 
+				class="drop drag" 
+				ondragover="return false" 
+				ondrop="dragReceive(event)" 
+				draggable="true" 
+				ondragstart="dragStart(event);" 
+			></div>
+		</div>
+		
+		<div>
+			<h3>Wednesday</h3>
+			<div 
+				class="drop drag" 
+				ondragover="return false" 
+				ondrop="dragReceive(event)" 
+				draggable="true" 
+				ondragstart="dragStart(event);" 
+			></div>
+		</div>
+		
+		<div>
+			<h3>Thursday</h3>
+			<div 
+				class="drop drag" 
+				ondragover="return false" 
+				ondrop="dragReceive(event)" 
+				draggable="true" 
+				ondragstart="dragStart(event);" 
+			></div>
+		</div>
+		
+		<div>
+			<h3>Friday</h3>
+			<div 
+				class="drop drag" 
+				ondragover="return false" 
+				ondrop="dragReceive(event)" 
+				draggable="true" 
+				ondragstart="dragStart(event);" 
+			></div>
+		</div>
+
+		<div id="hidden">
+			<div class="row">
+				<select name="category" class="defaultSelected">
+					<option class="defaultSelected">choose a category</option>
+					<option>Category 1</option>
+					<option>Category 2</option>
+					<option>Category 3</option>
+				</select>
+				
+				<select name="project" class="defaultSelected">
+					<option class="defaultSelected">choose a project</option>
+					<option>Project 1</option>
+					<option>Project 2</option>
+					<option>Project 3</option>
+				</select>
+				
+				<span class="hours">Hours: </span>
+				<input
+					name="hours"
+					type="text"
+					size="2"
+					value=""
+				/>
+				
+				<div class="actions">
+					<a class="action delete" onclick="return rowDelete(this);">x</a>
+					<a class="action add" onclick="return rowAdd(this);">+</a>
+				</div>
+			</div>
+		</div>
+		
+		<div id="toolbarLower">
+			<span class="button"><a class="action save" href="." onclick="return formSave();">Save</a></span>
+		</div>
+		
+	</div>
+
+</body>
+</html>
